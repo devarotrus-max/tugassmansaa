@@ -1,16 +1,25 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080b16">
+  <meta name="description" content="Portal digital kelas XI.A5 untuk tugas, jadwal, pengumuman, dan musik.">
+
   <title>TUGASSMANSAA XI.A5</title>
+
   <link rel="stylesheet" href="style.css">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <div class="app">
+
+    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-icon">A5</div>
@@ -21,119 +30,319 @@
       </div>
 
       <p class="nav-label">MENU UTAMA</p>
+
       <nav>
-        <button class="nav-item active" data-page="home">⌂ <span>Dashboard</span></button>
-        <button class="nav-item" data-page="tasks">▤ <span>Daftar Tugas</span></button>
-        <button class="nav-item" data-page="schedule">▦ <span>Jadwal Pelajaran</span></button>
-        <button class="nav-item" data-page="announcements">◉ <span>Pengumuman</span></button>
-        <button class="nav-item" data-page="music">♫ <span>Music Lounge</span></button>
+        <button type="button" class="nav-item active" data-page="home">
+          ⌂ <span>Dashboard</span>
+        </button>
+
+        <button type="button" class="nav-item" data-page="tasks">
+          ▤ <span>Daftar Tugas</span>
+        </button>
+
+        <button type="button" class="nav-item" data-page="schedule">
+          ▦ <span>Jadwal Pelajaran</span>
+        </button>
+
+        <button type="button" class="nav-item" data-page="announcements">
+          ◉ <span>Pengumuman</span>
+        </button>
+
+        <button type="button" class="nav-item" data-page="music">
+          ♫ <span>Music Lounge</span>
+        </button>
       </nav>
 
       <div class="sidebar-bottom">
         <div class="class-card">
           <span class="online-dot"></span>
-          <div><strong>XI.A5</strong><p>One class, one story.</p></div>
+          <div>
+            <strong>XI.A5</strong>
+            <p>One class, one story.</p>
+          </div>
         </div>
-        <button id="logoutBtn" class="logout-btn">↪ Keluar Akun</button>
+
+        <button type="button" id="logoutBtn" class="logout-btn">
+          ↪ Keluar Akun
+        </button>
       </div>
     </aside>
 
+    <!-- KONTEN UTAMA -->
     <main class="main">
+
+      <!-- HEADER -->
       <header class="topbar">
         <div>
           <p class="eyebrow">PORTAL KELAS DIGITAL</p>
           <h1 id="pageTitle">Dashboard</h1>
         </div>
+
         <div class="profile-pill">
           <div class="avatar">A5</div>
-          <div><strong id="profileName">Siswa XI.A5</strong><p id="profileClass">SMANSA</p></div>
+          <div>
+            <strong id="profileName">Siswa XI.A5</strong>
+            <p id="profileClass">SMANSA</p>
+          </div>
         </div>
       </header>
 
+      <!-- HALAMAN LOGIN -->
       <section id="loginPage" class="login-panel">
         <div class="login-decoration">A5</div>
+
         <p class="eyebrow">WELCOME BACK</p>
         <h1>Masuk ke ruang kelasmu.</h1>
-        <p class="muted">Satu tempat untuk tugas, jadwal, pengumuman, dan musik.</p>
+
+        <p class="muted">
+          Satu tempat untuk tugas, jadwal, pengumuman, dan musik.
+        </p>
+
         <form id="loginForm">
-          <label>Email</label>
-          <input id="email" type="email" placeholder="Masukkan email" required>
-          <label>Password</label>
-          <input id="password" type="password" placeholder="Masukkan password" required>
-          <button type="submit" class="primary-btn">Masuk ke Dashboard →</button>
-          <p id="loginMessage" class="message"></p>
+          <label for="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Masukkan email"
+            autocomplete="username"
+            required
+          >
+
+          <label for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Masukkan password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button type="submit" class="primary-btn">
+            Masuk ke Dashboard →
+          </button>
+
+          <p
+            id="loginMessage"
+            class="message"
+            role="status"
+            aria-live="polite"
+          ></p>
         </form>
       </section>
 
+      <!-- DASHBOARD -->
       <div id="dashboard" hidden>
+
         <section class="hero">
           <div class="hero-content">
             <span class="hero-tag">✦ DIGITAL CLASSROOM</span>
-            <h2>Belajar bareng,<br><span>tumbuh bareng.</span></h2>
-            <p>Selamat datang di pusat informasi kelas XI.A5.</p>
-            <button class="primary-btn" data-goto="tasks">Lihat Tugas →</button>
+
+            <h2>
+              Belajar bareng,<br>
+              <span>tumbuh bareng.</span>
+            </h2>
+
+            <p>
+              Selamat datang di pusat informasi kelas XI.A5.
+            </p>
+
+            <button type="button" class="primary-btn" data-goto="tasks">
+              Lihat Tugas →
+            </button>
           </div>
-          <div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-letter">A5</div></div>
+
+          <div class="hero-art">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="hero-letter">A5</div>
+          </div>
         </section>
 
+        <!-- STATISTIK -->
         <section class="stats-grid">
-          <article class="stat-card"><div class="stat-icon purple">▤</div><p>Total Tugas</p><h2 id="taskCount">0</h2><span>Daftar tugas kelas</span></article>
-          <article class="stat-card"><div class="stat-icon blue">◷</div><p>Belum Selesai</p><h2 id="pendingCount">0</h2><span>Perlu dikerjakan</span></article>
-          <article class="stat-card"><div class="stat-icon orange">◉</div><p>Pengumuman</p><h2 id="announcementCount">0</h2><span>Info terbaru kelas</span></article>
+          <article class="stat-card">
+            <div class="stat-icon purple">▤</div>
+            <p>Total Tugas</p>
+            <h2 id="taskCount">0</h2>
+            <span>Daftar tugas kelas</span>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon blue">◷</div>
+            <p>Belum Selesai</p>
+            <h2 id="pendingCount">0</h2>
+            <span>Perlu dikerjakan</span>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon orange">◉</div>
+            <p>Pengumuman</p>
+            <h2 id="announcementCount">0</h2>
+            <span>Info terbaru kelas</span>
+          </article>
         </section>
 
+        <!-- TUGAS DAN PENGUMUMAN TERBARU -->
         <section class="content-grid">
+
           <article class="panel">
-            <div class="section-heading"><div><p class="eyebrow">ACADEMIC</p><h3>Tugas Terbaru</h3></div><button class="text-btn" data-goto="tasks">Lihat semua →</button></div>
-            <div id="recentTasks" class="task-list"><p class="muted">Memuat tugas...</p></div>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">ACADEMIC</p>
+                <h3>Tugas Terbaru</h3>
+              </div>
+
+              <button type="button" class="text-btn" data-goto="tasks">
+                Lihat semua →
+              </button>
+            </div>
+
+            <div id="recentTasks" class="task-list">
+              <p class="muted">Memuat tugas...</p>
+            </div>
           </article>
+
           <article class="panel">
-            <div class="section-heading"><div><p class="eyebrow">CLASS UPDATE</p><h3>Pengumuman</h3></div></div>
-            <div id="recentAnnouncements" class="announcement-list"><p class="muted">Memuat pengumuman...</p></div>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">CLASS UPDATE</p>
+                <h3>Pengumuman</h3>
+              </div>
+            </div>
+
+            <div id="recentAnnouncements" class="announcement-list">
+              <p class="muted">Memuat pengumuman...</p>
+            </div>
           </article>
+
         </section>
       </div>
 
+      <!-- HALAMAN TUGAS -->
       <section id="tasksPage" class="page-section" hidden>
-        <div class="section-heading"><div><p class="eyebrow">ACADEMIC CENTER</p><h2>Daftar Tugas</h2><p class="muted">Pantau tugas dan tenggat waktumu.</p></div></div>
-        <div id="allTasks" class="task-grid"></div>
-      </section>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ACADEMIC CENTER</p>
+            <h2>Daftar Tugas</h2>
+            <p class="muted">
+              Pantau tugas dan tenggat waktumu.
+            </p>
+          </div>
+        </div>
 
-      <section id="schedulePage" class="page-section" hidden>
-        <div class="section-heading"><div><p class="eyebrow">WEEKLY PLANNER</p><h2>Jadwal Pelajaran</h2><p class="muted">Jadwal contoh. Sesuaikan dengan jadwal kelasmu.</p></div></div>
-        <div class="schedule-grid">
-          <article class="schedule-card"><span> SENIN </span><h3>Belajar & Berkarya</h3><p>Isi jadwal sesuai pelajaran kelas.</p></article>
-          <article class="schedule-card"><span> SELASA </span><h3>Keep Learning</h3><p>Isi jadwal sesuai pelajaran kelas.</p></article>
-          <article class="schedule-card"><span> RABU </span><h3>Midweek Focus</h3><p>Isi jadwal sesuai pelajaran kelas.</p></article>
-          <article class="schedule-card"><span> KAMIS </span><h3>Stay Productive</h3><p>Isi jadwal sesuai pelajaran kelas.</p></article>
-          <article class="schedule-card"><span> JUMAT </span><h3>Finish Strong</h3><p>Isi jadwal sesuai pelajaran kelas.</p></article>
+        <div id="allTasks" class="task-grid">
+          <p class="muted">Memuat tugas...</p>
         </div>
       </section>
 
-      <section id="announcementsPage" class="page-section" hidden>
-        <div class="section-heading"><div><p class="eyebrow">CLASS INFORMATION</p><h2>Pengumuman Kelas</h2></div></div>
-        <div id="allAnnouncements" class="announcement-grid"></div>
+      <!-- HALAMAN JADWAL -->
+      <section id="schedulePage" class="page-section" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WEEKLY PLANNER</p>
+            <h2>Jadwal Pelajaran</h2>
+            <p class="muted">
+              Sesuaikan jadwal berikut dengan jadwal resmi kelas.
+            </p>
+          </div>
+        </div>
+
+        <div class="schedule-grid">
+          <article class="schedule-card">
+            <span>SENIN</span>
+            <h3>Belajar & Berkarya</h3>
+            <p>Isi jadwal sesuai pelajaran kelas.</p>
+          </article>
+
+          <article class="schedule-card">
+            <span>SELASA</span>
+            <h3>Keep Learning</h3>
+            <p>Isi jadwal sesuai pelajaran kelas.</p>
+          </article>
+
+          <article class="schedule-card">
+            <span>RABU</span>
+            <h3>Midweek Focus</h3>
+            <p>Isi jadwal sesuai pelajaran kelas.</p>
+          </article>
+
+          <article class="schedule-card">
+            <span>KAMIS</span>
+            <h3>Stay Productive</h3>
+            <p>Isi jadwal sesuai pelajaran kelas.</p>
+          </article>
+
+          <article class="schedule-card">
+            <span>JUMAT</span>
+            <h3>Finish Strong</h3>
+            <p>Isi jadwal sesuai pelajaran kelas.</p>
+          </article>
+        </div>
       </section>
 
+      <!-- HALAMAN PENGUMUMAN -->
+      <section id="announcementsPage" class="page-section" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CLASS INFORMATION</p>
+            <h2>Pengumuman Kelas</h2>
+          </div>
+        </div>
+
+        <div id="allAnnouncements" class="announcement-grid">
+          <p class="muted">Memuat pengumuman...</p>
+        </div>
+      </section>
+
+      <!-- HALAMAN SPOTIFY -->
       <section id="musicPage" class="page-section" hidden>
-        <div class="music-hero"><p class="eyebrow">YOUR CLASS PLAYLIST</p><h2>Music Lounge <span>♫</span></h2><p>Putar playlist favoritmu sambil belajar.</p></div>
+        <div class="music-hero">
+          <p class="eyebrow">YOUR CLASS PLAYLIST</p>
+          <h2>Music Lounge <span>♫</span></h2>
+          <p>Putar playlist favoritmu sambil belajar.</p>
+        </div>
+
         <article class="panel spotify-panel">
           <label for="spotifyUrl">Link playlist Spotify</label>
-          <div class="spotify-input"><input id="spotifyUrl" type="url" placeholder="https://open.spotify.com/playlist/..."><button id="loadSpotify" class="primary-btn">Putar</button></div>
-          <p id="spotifyMessage" class="muted">Tempel link playlist Spotify, lalu tekan Putar.</p>
-          <div id="spotifyPlayer" class="spotify-player"><div class="music-placeholder">♫<p>Playlist-mu akan muncul di sini</p></div></div>
+
+          <div class="spotify-input">
+            <input
+              id="spotifyUrl"
+              type="url"
+              placeholder="https://open.spotify.com/playlist/..."
+            >
+
+            <button type="button" id="loadSpotify" class="primary-btn">
+              Putar
+            </button>
+          </div>
+
+          <p id="spotifyMessage" class="muted">
+            Tempel link Spotify, lalu tekan Putar.
+          </p>
+
+          <div id="spotifyPlayer" class="spotify-player">
+            <div class="music-placeholder">
+              ♫
+              <p>Playlist-mu akan muncul di sini</p>
+            </div>
+          </div>
         </article>
       </section>
 
-      <footer>© 2026 TUGASSMANSAA XI.A5 · Made for our class.</footer>
+      <!-- FOOTER -->
+      <footer>
+        © 2026 TUGASSMANSAA XI.A5 · Made for our class.
+      </footer>
+
     </main>
   </div>
 
+  <!-- SCRIPT: JANGAN UBAH URUTANNYA -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script>
-  alert("APP.JS BERJALAN");
-</script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
