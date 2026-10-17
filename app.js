@@ -1,159 +1,96 @@
-alert("APP.JS TERBACA");
+
 (() => {
   "use strict";
 
-  // =========================================
-  // 1. KONEKSI SUPABASE
-  // =========================================
-
   const $ = (id) => document.getElementById(id);
 
-  function getSupabaseConfig() {
-    const candidates = [
-      [
-        typeof SUPABASE_URL !== "undefined" ? SUPABASE_URL : "",
-        typeof SUPABASE_ANON_KEY !== "undefined"
-          ? SUPABASE_ANON_KEY
-          : ""
-      ],
-      [
-        typeof supabaseUrl !== "undefined" ? supabaseUrl : "",
-        typeof supabaseAnonKey !== "undefined"
-          ? supabaseAnonKey
-          : ""
-      ],
-      [
-        typeof supabaseURL !== "undefined" ? supabaseURL : "",
-        typeof supabaseKey !== "undefined" ? supabaseKey : ""
-      ],
-      [
-        window.SUPABASE_URL || "",
-        window.SUPABASE_ANON_KEY || ""
-      ],
-      [
-        window.supabaseUrl || "",
-        window.supabaseAnonKey || ""
-      ]
-    ];
+  // ======================================
+  // SUPABASE
+  // ======================================
 
-    return candidates.find(([url, key]) =>
-      typeof url === "string" &&
-      typeof key === "string" &&
-      /^https:\/\/.+\.supabase\.co\/?$/.test(url) &&
-      key.length > 10
-    );
-  }
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
 
   if (!window.supabase?.createClient) {
-    alert(
-      "Supabase belum berhasil dimuat. Periksa script Supabase di index.html dan koneksi internet."
-    );
+    alert("Supabase belum dimuat. Periksa koneksi internet.");
     return;
   }
 
-  const config = getSupabaseConfig();
-
-  if (!config) {
-    alert(
-      "Konfigurasi Supabase tidak terbaca. Periksa format variabel di config.js. Jangan mengganti URL atau key lama."
-    );
+  if (
+    typeof url !== "string" ||
+    typeof key !== "string" ||
+    !url.startsWith("https://") ||
+    !key
+  ) {
+    alert("Konfigurasi Supabase belum benar. Periksa config.js.");
     return;
   }
 
-  const [SUPABASE_URL, SUPABASE_ANON_KEY] = config;
-
-  const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  const db = window.supabase.createClient(url, key);
 
   let currentUser = null;
-  let currentProfile = null;
+  let profile = null;
   let tasks = [];
   let announcements = [];
-  let loginInProgress = false;
+  let busy = false;
 
-  // =========================================
-  // 2. UTILITAS
-  // =========================================
+  // ======================================
+  // UTILITAS
+  // ======================================
 
   function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    return String(value ?? "").replace(/[&<>"']/g, (c) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
-    })[char]);
+    })[c]);
   }
 
-  function message(element, text, success = false) {
-    if (!element) return;
+  function showMessage(text, success = false) {
+    const el = $("loginMessage");
+    if (!el) return;
 
-    element.textContent = text;
-    element.style.color = success ? "#4ade80" : "#fca5a5";
+    el.textContent = text;
+    el.style.color = success ? "#4ade80" : "#fca5a5";
   }
 
-  function formatDate(value) {
+  function dateText(value) {
     if (!value) return "Belum ditentukan";
 
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
-      return String(value);
-    }
-
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
+    return Number.isNaN(date.getTime())
+      ? String(value)
+      : date.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        });
   }
 
-  function showLogin() {
-    if ($("loginPage")) $("loginPage").hidden = false;
-    if ($("dashboard")) $("dashboard").hidden = true;
+  function completedTasks() {
+    if (!currentUser) return [];
 
-    [
-      "tasksPage",
-      "schedulePage",
-      "announcementsPage",
-      "musicPage"
-    ].forEach((id) => {
-      if ($(id)) $(id).hidden = true;
-    });
-
-    const topbar = document.querySelector(".topbar");
-    if (topbar) topbar.hidden = true;
+    try {
+      return JSON.parse(
+        localStorage.getItem("a5_done_" + currentUser.id) || "[]"
+      );
+    } catch {
+      return [];
+    }
   }
 
-  function showDashboard() {
-    if ($("loginPage")) $("loginPage").hidden = true;
-    if ($("dashboard")) $("dashboard").hidden = false;
-
-    const topbar = document.querySelector(".topbar");
-    if (topbar) topbar.hidden = false;
-
-    if ($("profileName")) {
-      $("profileName").textContent =
-        currentProfile?.full_name ||
-        currentUser?.email ||
-        "Siswa";
-    }
-
-    if ($("profileClass")) {
-      $("profileClass").textContent =
-        currentProfile?.class_name || "XI.A5";
-    }
-
-    openPage("home");
+  function isDone(id) {
+    return completedTasks().includes(String(id));
   }
 
-  // =========================================
-  // 3. NAVIGASI
-  // =========================================
+  // ======================================
+  // HALAMAN DAN NAVIGASI
+  // ======================================
 
-  const pages = {
+  const pageIds = {
     home: "dashboard",
     tasks: "tasksPage",
     schedule: "schedulePage",
@@ -161,7 +98,7 @@ alert("APP.JS TERBACA");
     music: "musicPage"
   };
 
-  const pageTitles = {
+  const pageNames = {
     home: "Dashboard",
     tasks: "Daftar Tugas",
     schedule: "Jadwal Pelajaran",
@@ -169,211 +106,159 @@ alert("APP.JS TERBACA");
     music: "Music Lounge"
   };
 
-  function openPage(name) {
-    if (!pages[name]) return;
+  function showLogin() {
+    if ($("loginPage")) $("loginPage").hidden = false;
+    if ($("dashboard")) $("dashboard").hidden = true;
+
+    ["tasksPage", "schedulePage", "announcementsPage", "musicPage"]
+      .forEach((id) => {
+        if ($(id)) $(id).hidden = true;
+      });
+  }
+
+  function openPage(page) {
+    if (!pageIds[page]) return;
 
     if (!currentUser) {
       showLogin();
       return;
     }
 
-    Object.values(pages).forEach((id) => {
+    Object.values(pageIds).forEach((id) => {
       if ($(id)) $(id).hidden = true;
     });
 
-    if ($(pages[name])) {
-      $(pages[name]).hidden = false;
+    if ($(pageIds[page])) $(pageIds[page]).hidden = false;
+
+    if ($("pageTitle")) {
+      $("pageTitle").textContent = pageNames[page];
     }
 
     document.querySelectorAll("[data-page]").forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.page === name
-      );
+      button.classList.toggle("active", button.dataset.page === page);
     });
-
-    if ($("pageTitle")) {
-      $("pageTitle").textContent = pageTitles[name];
-    }
   }
 
   document.querySelectorAll("[data-page]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openPage(button.dataset.page);
-    });
+    button.addEventListener("click", () => openPage(button.dataset.page));
   });
 
   document.querySelectorAll("[data-goto]").forEach((button) => {
-    button.addEventListener("click", () => {
-      openPage(button.dataset.goto);
-    });
+    button.addEventListener("click", () => openPage(button.dataset.goto));
   });
 
-  // =========================================
-  // 4. STATUS TUGAS
-  // Catatan: tersimpan di browser perangkat ini.
-  // =========================================
+  function showDashboard() {
+    if ($("loginPage")) $("loginPage").hidden = true;
 
-  function completedIds() {
-    if (!currentUser) return [];
-
-    try {
-      return JSON.parse(
-        localStorage.getItem(
-          "completed_tasks_" + currentUser.id
-        ) || "[]"
-      );
-    } catch {
-      return [];
+    if ($("profileName")) {
+      $("profileName").textContent =
+        profile?.full_name || currentUser?.email || "Siswa XI.A5";
     }
+
+    if ($("profileClass")) {
+      $("profileClass").textContent = profile?.class_name || "XI.A5";
+    }
+
+    openPage("home");
   }
 
-  function isCompleted(id) {
-    return completedIds().includes(String(id));
-  }
-
-  function toggleCompleted(id) {
-    const previous = completedIds();
-    const key = String(id);
-
-    const next = previous.includes(key)
-      ? previous.filter((item) => item !== key)
-      : [...previous, key];
-
-    localStorage.setItem(
-      "completed_tasks_" + currentUser.id,
-      JSON.stringify(next)
-    );
-
-    renderTasks();
-    updateStats();
-  }
-
-  // =========================================
-  // 5. LOGIN
-  // =========================================
+  // ======================================
+  // LOGIN
+  // ======================================
 
   const loginForm = $("loginForm");
 
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      if (loginInProgress) return;
-
-      const email = $("email")?.value.trim();
-      const password = $("password")?.value;
-      const button = loginForm.querySelector(
-        'button[type="submit"]'
-      );
-
-      if (!email || !password) {
-        message(
-          $("loginMessage"),
-          "Masukkan email dan password terlebih dahulu."
-        );
-        return;
-      }
-
-      loginInProgress = true;
-
-      if (button) {
-        button.disabled = true;
-        button.textContent = "Sedang masuk...";
-      }
-
-      message($("loginMessage"), "Menghubungkan ke Supabase...");
-
-      try {
-        const { data, error } = await db.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) throw error;
-
-        currentUser = data.user;
-
-        if (!currentUser) {
-          throw new Error("Pengguna tidak ditemukan setelah login.");
-        }
-
-        message(
-          $("loginMessage"),
-          "Login berhasil. Memuat profil...",
-          true
-        );
-
-        await loadProfile();
-
-        if (!currentProfile) {
-          await db.auth.signOut();
-          currentUser = null;
-
-          showLogin();
-
-          throw new Error(
-            "Profil belum tersedia. Periksa tabel profiles di Supabase dan pastikan id profil sama dengan ID pengguna di Authentication."
-          );
-        }
-
-        showDashboard();
-
-        // Dashboard ditampilkan sebelum data tambahan dimuat,
-        // sehingga kegagalan memuat tugas tidak menghalangi login.
-        await loadData();
-
-      } catch (error) {
-        console.error("Login error:", error);
-
-        showLogin();
-
-        message(
-          $("loginMessage"),
-          error.message || "Login gagal. Periksa koneksi dan akun."
-        );
-      } finally {
-        loginInProgress = false;
-
-        if (button) {
-          button.disabled = false;
-          button.textContent = "Masuk ke Dashboard →";
-        }
-      }
-    });
-  } else {
-    console.error(
-      "Elemen loginForm tidak ditemukan. Periksa index.html."
-    );
+  if (!loginForm) {
+    alert("Form login tidak ditemukan. Periksa index.html.");
+    return;
   }
 
-  // =========================================
-  // 6. MEMUAT PROFIL
-  // =========================================
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-  async function loadProfile() {
-    const { data, error } = await db
-      .from("profiles")
-      .select("id, full_name, role, class_name")
-      .eq("id", currentUser.id)
-      .maybeSingle();
+    if (busy) return;
 
-    if (error) {
-      console.error("Profile error:", error);
-      throw new Error(
-        "Gagal membaca profil. Periksa izin SELECT pada tabel profiles di Supabase."
-      );
+    const email = $("email")?.value.trim();
+    const password = $("password")?.value;
+    const button = loginForm.querySelector('[type="submit"]');
+
+    if (!email || !password) {
+      showMessage("Masukkan email dan password.");
+      return;
     }
 
-    currentProfile = data;
-  }
+    busy = true;
 
-  // =========================================
-  // 7. MEMUAT DATA
-  // =========================================
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Memeriksa akun...";
+    }
+
+    showMessage("Menghubungkan ke Supabase...", true);
+
+    try {
+      const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      if (!data.user) {
+        throw new Error("Akun tidak ditemukan.");
+      }
+
+      currentUser = data.user;
+
+      // Profil tidak dibuat otomatis. Jika belum ada,
+      // dashboard tetap bisa dibuka dengan nama default.
+      profile = null;
+
+      const result = await db
+        .from("profiles")
+        .select("id, full_name, role, class_name")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (result.error) {
+        console.warn("Profil belum dapat dibaca:", result.error.message);
+      } else {
+        profile = result.data;
+      }
+
+      showDashboard();
+      showMessage("", true);
+
+      // Data tambahan dimuat terpisah agar kegagalannya
+      // tidak membatalkan login yang sudah berhasil.
+      await loadData();
+
+    } catch (error) {
+      console.error("Login gagal:", error);
+
+      currentUser = null;
+      profile = null;
+
+      showLogin();
+
+      showMessage(
+        error.message || "Login gagal. Periksa koneksi dan akun."
+      );
+    } finally {
+      busy = false;
+
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Masuk ke Dashboard →";
+      }
+    }
+  });
+
+  // ======================================
+  // TUGAS DAN PENGUMUMAN
+  // ======================================
 
   async function loadData() {
-    // Error pada satu tabel tidak menghentikan tabel lainnya.
     await Promise.allSettled([
       loadTasks(),
       loadAnnouncements()
@@ -387,34 +272,30 @@ alert("APP.JS TERBACA");
   async function loadTasks() {
     const { data, error } = await db
       .from("tasks")
-      .select(
-        "id, title, description, due_date, class_name, created_at"
-      )
+      .select("id, title, description, due_date, class_name, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Tasks error:", error);
+      console.error("Gagal memuat tugas:", error);
       tasks = [];
 
       if ($("recentTasks")) {
-        $("recentTasks").textContent =
-          "Tugas belum bisa dimuat. Periksa tabel tasks dan izin aksesnya.";
+        $("recentTasks").innerHTML =
+          '<p class="muted">Tugas belum dapat dimuat.</p>';
       }
 
       if ($("allTasks")) {
-        $("allTasks").textContent =
-          "Tugas belum bisa dimuat. Periksa tabel tasks dan izin aksesnya.";
+        $("allTasks").innerHTML =
+          '<p class="muted">Tugas belum dapat dimuat.</p>';
       }
 
       return;
     }
 
-    const className = currentProfile?.class_name;
-
     tasks = (data || []).filter((task) =>
       !task.class_name ||
-      !className ||
-      task.class_name === className
+      !profile?.class_name ||
+      task.class_name === profile.class_name
     );
   }
 
@@ -425,17 +306,17 @@ alert("APP.JS TERBACA");
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Announcements error:", error);
+      console.error("Gagal memuat pengumuman:", error);
       announcements = [];
 
       if ($("recentAnnouncements")) {
-        $("recentAnnouncements").textContent =
-          "Pengumuman belum bisa dimuat. Periksa tabel announcements.";
+        $("recentAnnouncements").innerHTML =
+          '<p class="muted">Pengumuman belum dapat dimuat.</p>';
       }
 
       if ($("allAnnouncements")) {
-        $("allAnnouncements").textContent =
-          "Pengumuman belum bisa dimuat. Periksa tabel announcements.";
+        $("allAnnouncements").innerHTML =
+          '<p class="muted">Pengumuman belum dapat dimuat.</p>';
       }
 
       return;
@@ -444,28 +325,23 @@ alert("APP.JS TERBACA");
     announcements = data || [];
   }
 
-  // =========================================
-  // 8. TAMPILAN TUGAS
-  // =========================================
-
   function taskHTML(task) {
-    const done = isCompleted(task.id);
+    const done = isDone(task.id);
 
     return `
       <article class="task-item">
         <h4>${escapeHTML(task.title)}</h4>
         <p>${escapeHTML(task.description || "Tidak ada deskripsi.")}</p>
         <div class="task-meta">
-          <small>Deadline: ${escapeHTML(formatDate(task.due_date))}</small>
+          <small>Deadline: ${escapeHTML(dateText(task.due_date))}</small>
           <span class="status ${done ? "done" : ""}">
             ${done ? "Selesai" : "Belum selesai"}
           </span>
         </div>
-        <div style="margin-top:12px">
-          <button class="primary-btn" data-toggle-task="${escapeHTML(task.id)}">
-            ${done ? "Batalkan selesai" : "Tandai selesai"}
-          </button>
-        </div>
+        <button type="button" class="primary-btn"
+          data-toggle-task="${escapeHTML(task.id)}">
+          ${done ? "Batalkan selesai" : "Tandai selesai"}
+        </button>
       </article>
     `;
   }
@@ -477,216 +353,189 @@ alert("APP.JS TERBACA");
     if (recent) {
       recent.innerHTML = tasks.length
         ? tasks.slice(0, 4).map(taskHTML).join("")
-        : '<p class="muted">Belum ada tugas yang tersedia.</p>';
+        : '<p class="muted">Belum ada tugas.</p>';
     }
 
     if (all) {
       all.innerHTML = tasks.length
         ? tasks.map(taskHTML).join("")
-        : '<p class="muted">Belum ada tugas yang tersedia.</p>';
+        : '<p class="muted">Belum ada tugas.</p>';
     }
 
     document.querySelectorAll("[data-toggle-task]").forEach((button) => {
       button.addEventListener("click", () => {
-        toggleCompleted(button.dataset.toggleTask);
+        const id = String(button.dataset.toggleTask);
+        const current = completedTasks();
+
+        const updated = current.includes(id)
+          ? current.filter((item) => item !== id)
+          : [...current, id];
+
+        localStorage.setItem(
+          "a5_done_" + currentUser.id,
+          JSON.stringify(updated)
+        );
+
+        renderTasks();
+        updateStats();
       });
     });
   }
-
-  // =========================================
-  // 9. TAMPILAN PENGUMUMAN
-  // =========================================
 
   function announcementHTML(item) {
     return `
       <article class="announcement-item">
         <h4>${escapeHTML(item.title)}</h4>
         <p>${escapeHTML(item.content || "Tidak ada isi pengumuman.")}</p>
-        <div class="task-meta">
-          <small>${escapeHTML(formatDate(item.created_at))}</small>
-        </div>
+        <small>${escapeHTML(dateText(item.created_at))}</small>
       </article>
     `;
   }
 
   function renderAnnouncements() {
-    if ($("recentAnnouncements")) {
-      $("recentAnnouncements").innerHTML = announcements.length
+    const recent = $("recentAnnouncements");
+    const all = $("allAnnouncements");
+
+    if (recent) {
+      recent.innerHTML = announcements.length
         ? announcements.slice(0, 4).map(announcementHTML).join("")
         : '<p class="muted">Belum ada pengumuman.</p>';
     }
 
-    if ($("allAnnouncements")) {
-      $("allAnnouncements").innerHTML = announcements.length
+    if (all) {
+      all.innerHTML = announcements.length
         ? announcements.map(announcementHTML).join("")
         : '<p class="muted">Belum ada pengumuman.</p>';
     }
   }
 
-  // =========================================
-  // 10. STATISTIK
-  // =========================================
-
   function updateStats() {
-    const completed = tasks.filter((task) =>
-      isCompleted(task.id)
-    ).length;
+    const done = tasks.filter((task) => isDone(task.id)).length;
 
-    if ($("taskCount")) {
-      $("taskCount").textContent = tasks.length;
-    }
-
+    if ($("taskCount")) $("taskCount").textContent = tasks.length;
     if ($("pendingCount")) {
-      $("pendingCount").textContent = tasks.length - completed;
+      $("pendingCount").textContent = tasks.length - done;
     }
-
     if ($("announcementCount")) {
       $("announcementCount").textContent = announcements.length;
     }
   }
 
-  // =========================================
-  // 11. SPOTIFY
-  // =========================================
+  // ======================================
+  // SPOTIFY EMBED
+  // ======================================
 
-  const spotifyButton = $("loadSpotify");
-
-  if (spotifyButton) {
-    spotifyButton.addEventListener("click", () => {
+  if ($("loadSpotify")) {
+    $("loadSpotify").addEventListener("click", () => {
       const input = $("spotifyUrl")?.value.trim() || "";
       const player = $("spotifyPlayer");
       const status = $("spotifyMessage");
 
-      let url;
+      let parsed;
 
       try {
-        url = new URL(input);
+        parsed = new URL(input);
       } catch {
-        message(status, "Masukkan link Spotify yang valid.");
+        if (status) status.textContent = "Masukkan link Spotify yang valid.";
         return;
       }
 
-      if (url.hostname !== "open.spotify.com") {
-        message(status, "Gunakan link dari open.spotify.com.");
+      if (parsed.hostname !== "open.spotify.com") {
+        if (status) status.textContent = "Gunakan link dari open.spotify.com.";
         return;
       }
 
-      const match = url.pathname.match(
+      const match = parsed.pathname.match(
         /^\/(playlist|album|track|episode|show)\/([a-zA-Z0-9]+)/
       );
 
       if (!match) {
-        message(
-          status,
-          "Link tidak dikenali. Gunakan link playlist, album, lagu, atau podcast."
-        );
+        if (status) status.textContent = "Link playlist atau lagu tidak dikenali.";
         return;
       }
 
-      const embedURL =
-        `https://open.spotify.com/embed/${match[1]}/${match[2]}`;
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://open.spotify.com/embed/${match[1]}/${match[2]}`;
+      iframe.title = "Spotify Player";
+      iframe.width = "100%";
+      iframe.height = "352";
+      iframe.loading = "lazy";
+      iframe.allow =
+        "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+      iframe.style.border = "0";
+      iframe.style.borderRadius = "12px";
 
       if (player) {
-        player.innerHTML = "";
-
-        const iframe = document.createElement("iframe");
-        iframe.src = embedURL;
-        iframe.title = "Spotify Player";
-        iframe.width = "100%";
-        iframe.height = "352";
-        iframe.loading = "lazy";
-        iframe.allow =
-          "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
-        iframe.style.border = "0";
-        iframe.style.borderRadius = "13px";
-
-        player.appendChild(iframe);
+        player.replaceChildren(iframe);
       }
 
-      message(status, "Player Spotify berhasil dimuat.", true);
+      if (status) status.textContent = "Player Spotify berhasil dimuat.";
     });
   }
 
-  // =========================================
-  // 12. LOGOUT
-  // =========================================
+  // ======================================
+  // LOGOUT
+  // ======================================
 
-  const logoutButton = $("logoutBtn");
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", async () => {
-      logoutButton.disabled = true;
+  if ($("logoutBtn")) {
+    $("logoutBtn").addEventListener("click", async () => {
+      const button = $("logoutBtn");
+      button.disabled = true;
 
       try {
         const { error } = await db.auth.signOut();
-
         if (error) throw error;
 
         currentUser = null;
-        currentProfile = null;
+        profile = null;
         tasks = [];
         announcements = [];
 
-        if ($("loginForm")) $("loginForm").reset();
-
-        message($("loginMessage"), "");
+        loginForm.reset();
+        showMessage("");
         showLogin();
+
       } catch (error) {
-        console.error("Logout error:", error);
+        console.error("Logout gagal:", error);
         alert("Gagal keluar: " + error.message);
       } finally {
-        logoutButton.disabled = false;
+        button.disabled = false;
       }
     });
   }
 
-  // =========================================
-  // 13. MEMULIHKAN SESI
-  // =========================================
+  // ======================================
+  // PULIHKAN SESI LOGIN
+  // ======================================
 
   async function initialize() {
     showLogin();
 
     try {
       const { data, error } = await db.auth.getSession();
-
       if (error) throw error;
 
       if (!data.session) return;
 
       currentUser = data.session.user;
 
-      await loadProfile();
+      const result = await db
+        .from("profiles")
+        .select("id, full_name, role, class_name")
+        .eq("id", currentUser.id)
+        .maybeSingle();
 
-      if (!currentProfile) {
-        await db.auth.signOut();
-        currentUser = null;
-
-        message(
-          $("loginMessage"),
-          "Profil belum tersedia. Periksa tabel profiles di Supabase."
-        );
-
-        return;
-      }
+      profile = result.error ? null : result.data;
 
       showDashboard();
       await loadData();
 
     } catch (error) {
-      console.error("Session error:", error);
+      console.error("Gagal memulihkan sesi:", error);
       showLogin();
-
-      message(
-        $("loginMessage"),
-        error.message || "Gagal memulihkan sesi login."
-      );
+      showMessage("Sesi belum dapat dipulihkan. Coba login kembali.");
     }
   }
-
-  // =========================================
-  // 14. MULAI APLIKASI
-  // =========================================
 
   initialize();
 
