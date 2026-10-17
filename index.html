@@ -5,13 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080b14">
-
+  <meta name="description" content="Website informasi dan tugas kelas XI.A5">
   <title>tugassmansaa · XI.A5</title>
-  <meta name="description" content="Website kelas XI.A5 SMANSA.">
-
   <link rel="stylesheet" href="./style.css">
 </head>
-
 <body>
   <main class="shell">
 
@@ -25,16 +22,163 @@
     <section class="hero">
       <p class="eyebrow">WELCOME TO OUR CLASS</p>
       <h2>XI.A5</h2>
-      <p>
-        Satu kelas, banyak cerita.
-        Tempat menyimpan kenangan dan informasi kelas.
+      <p>Satu kelas, banyak cerita.</p>
+    </section>
+
+    <!-- LOGIN -->
+    <section id="loginPanel" class="panel">
+      <h2>Masuk ke Akun</h2>
+      <p>Login untuk melihat tugas dan pengumuman kelas.</p>
+
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="Masukkan email"
+          autocomplete="email"
+          required
+        >
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Masukkan password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit">Masuk</button>
+        <button type="button" id="resetBtn">Lupa Password?</button>
+      </form>
+
+      <p id="loginMsg" class="muted" role="status" aria-live="polite">
+        Memeriksa konfigurasi...
       </p>
     </section>
 
-    <section id="app">
-      <div class="loading">
-        Memuat website kelas...
+    <!-- PEMULIHAN PASSWORD -->
+    <section id="recoveryPanel" class="panel" hidden>
+      <h2>Buat Password Baru</h2>
+      <p>Masukkan password baru untuk akunmu.</p>
+
+      <form id="recoveryForm">
+        <label for="newPassword">Password Baru</label>
+        <input
+          type="password"
+          id="newPassword"
+          placeholder="Minimal 8 karakter"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <label for="confirmPassword">Ulangi Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          placeholder="Ulangi password baru"
+          autocomplete="new-password"
+          required
+        >
+
+        <button type="submit">Simpan Password</button>
+      </form>
+
+      <p id="recoveryMsg" class="muted" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- APLIKASI UTAMA -->
+    <section id="appPanel" hidden>
+      <div class="panel">
+        <h2 id="hello">Halo!</h2>
+        <p>Selamat datang di website kelas XI.A5.</p>
+        <button type="button" id="logoutBtn">Keluar</button>
       </div>
+
+      <!-- NAVIGASI TAB -->
+      <nav class="tabs" aria-label="Navigasi kelas">
+        <button type="button" class="tab active" data-tab="tasksTab">
+          Tugas
+        </button>
+        <button type="button" class="tab" data-tab="announcementsTab">
+          Pengumuman
+        </button>
+      </nav>
+
+      <!-- DAFTAR TUGAS -->
+      <section id="tasksTab" class="tabcontent panel">
+        <h2>Daftar Tugas</h2>
+        <div id="taskList">
+          <p class="muted">Memuat tugas...</p>
+        </div>
+      </section>
+
+      <!-- DAFTAR PENGUMUMAN -->
+      <section id="announcementsTab" class="tabcontent panel" hidden>
+        <h2>Pengumuman Kelas</h2>
+        <div id="announcementList">
+          <p class="muted">Memuat pengumuman...</p>
+        </div>
+      </section>
+
+      <!-- PANEL ADMIN -->
+      <section id="adminPanel" class="panel" hidden>
+        <h2>Panel Admin</h2>
+        <p>Kelola tugas dan pengumuman kelas.</p>
+
+        <form id="announcementForm">
+          <h3>Buat Pengumuman</h3>
+
+          <label for="announcementTitle">Judul</label>
+          <input
+            type="text"
+            id="announcementTitle"
+            placeholder="Judul pengumuman"
+            required
+          >
+
+          <label for="announcementContent">Isi Pengumuman</label>
+          <textarea
+            id="announcementContent"
+            placeholder="Tulis pengumuman..."
+            rows="4"
+            required
+          ></textarea>
+
+          <button type="submit">Terbitkan Pengumuman</button>
+        </form>
+
+        <div class="separator"></div>
+
+        <form id="taskForm">
+          <h3>Tambah Tugas</h3>
+
+          <label for="taskTitle">Judul Tugas</label>
+          <input
+            type="text"
+            id="taskTitle"
+            placeholder="Nama tugas"
+            required
+          >
+
+          <label for="taskDescription">Deskripsi</label>
+          <textarea
+            id="taskDescription"
+            placeholder="Deskripsi tugas"
+            rows="4"
+            required
+          ></textarea>
+
+          <label for="taskDue">Tenggat Waktu</label>
+          <input type="datetime-local" id="taskDue">
+
+          <button type="submit">Tambah Tugas</button>
+        </form>
+
+        <p id="adminMsg" class="muted" role="status" aria-live="polite"></p>
+      </section>
     </section>
 
     <footer class="footer">
@@ -43,13 +187,211 @@
 
   </main>
 
-  <!-- Supabase JS library -->
+  <!-- 1. Library Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Konfigurasi Supabase -->
+  <!-- 2. Konfigurasi Supabase -->
   <script src="./config.js"></script>
 
-  <!-- Script utama website -->
+  <!-- 3. Logika website -->
+  <script src="./app.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b14">
+  <meta name="description" content="Website informasi dan tugas kelas XI.A5">
+  <title>tugassmansaa · XI.A5</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="shell">
+
+    <header class="header">
+      <div class="brand">
+        <h1>tugassmansaa</h1>
+        <p>XI.A5 · CLASS WEBSITE</p>
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">WELCOME TO OUR CLASS</p>
+      <h2>XI.A5</h2>
+      <p>Satu kelas, banyak cerita.</p>
+    </section>
+
+    <!-- LOGIN -->
+    <section id="loginPanel" class="panel">
+      <h2>Masuk ke Akun</h2>
+      <p>Login untuk melihat tugas dan pengumuman kelas.</p>
+
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="Masukkan email"
+          autocomplete="email"
+          required
+        >
+
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Masukkan password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit">Masuk</button>
+        <button type="button" id="resetBtn">Lupa Password?</button>
+      </form>
+
+      <p id="loginMsg" class="muted" role="status" aria-live="polite">
+        Memeriksa konfigurasi...
+      </p>
+    </section>
+
+    <!-- PEMULIHAN PASSWORD -->
+    <section id="recoveryPanel" class="panel" hidden>
+      <h2>Buat Password Baru</h2>
+      <p>Masukkan password baru untuk akunmu.</p>
+
+      <form id="recoveryForm">
+        <label for="newPassword">Password Baru</label>
+        <input
+          type="password"
+          id="newPassword"
+          placeholder="Minimal 8 karakter"
+          minlength="8"
+          autocomplete="new-password"
+          required
+        >
+
+        <label for="confirmPassword">Ulangi Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          placeholder="Ulangi password baru"
+          autocomplete="new-password"
+          required
+        >
+
+        <button type="submit">Simpan Password</button>
+      </form>
+
+      <p id="recoveryMsg" class="muted" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- APLIKASI UTAMA -->
+    <section id="appPanel" hidden>
+      <div class="panel">
+        <h2 id="hello">Halo!</h2>
+        <p>Selamat datang di website kelas XI.A5.</p>
+        <button type="button" id="logoutBtn">Keluar</button>
+      </div>
+
+      <!-- NAVIGASI TAB -->
+      <nav class="tabs" aria-label="Navigasi kelas">
+        <button type="button" class="tab active" data-tab="tasksTab">
+          Tugas
+        </button>
+        <button type="button" class="tab" data-tab="announcementsTab">
+          Pengumuman
+        </button>
+      </nav>
+
+      <!-- DAFTAR TUGAS -->
+      <section id="tasksTab" class="tabcontent panel">
+        <h2>Daftar Tugas</h2>
+        <div id="taskList">
+          <p class="muted">Memuat tugas...</p>
+        </div>
+      </section>
+
+      <!-- DAFTAR PENGUMUMAN -->
+      <section id="announcementsTab" class="tabcontent panel" hidden>
+        <h2>Pengumuman Kelas</h2>
+        <div id="announcementList">
+          <p class="muted">Memuat pengumuman...</p>
+        </div>
+      </section>
+
+      <!-- PANEL ADMIN -->
+      <section id="adminPanel" class="panel" hidden>
+        <h2>Panel Admin</h2>
+        <p>Kelola tugas dan pengumuman kelas.</p>
+
+        <form id="announcementForm">
+          <h3>Buat Pengumuman</h3>
+
+          <label for="announcementTitle">Judul</label>
+          <input
+            type="text"
+            id="announcementTitle"
+            placeholder="Judul pengumuman"
+            required
+          >
+
+          <label for="announcementContent">Isi Pengumuman</label>
+          <textarea
+            id="announcementContent"
+            placeholder="Tulis pengumuman..."
+            rows="4"
+            required
+          ></textarea>
+
+          <button type="submit">Terbitkan Pengumuman</button>
+        </form>
+
+        <div class="separator"></div>
+
+        <form id="taskForm">
+          <h3>Tambah Tugas</h3>
+
+          <label for="taskTitle">Judul Tugas</label>
+          <input
+            type="text"
+            id="taskTitle"
+            placeholder="Nama tugas"
+            required
+          >
+
+          <label for="taskDescription">Deskripsi</label>
+          <textarea
+            id="taskDescription"
+            placeholder="Deskripsi tugas"
+            rows="4"
+            required
+          ></textarea>
+
+          <label for="taskDue">Tenggat Waktu</label>
+          <input type="datetime-local" id="taskDue">
+
+          <button type="submit">Tambah Tugas</button>
+        </form>
+
+        <p id="adminMsg" class="muted" role="status" aria-live="polite"></p>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <p>© 2026 tugassmansaa · XI.A5</p>
+    </footer>
+
+  </main>
+
+  <!-- 1. Library Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 2. Konfigurasi Supabase -->
+  <script src="./config.js"></script>
+
+  <!-- 3. Logika website -->
   <script src="./app.js"></script>
 </body>
 </html>
