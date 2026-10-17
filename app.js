@@ -1,3 +1,4 @@
+alert("APP.JS TERBACA");
 (() => {
   "use strict";
 
